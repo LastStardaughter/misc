@@ -27,11 +27,11 @@ function getMaxLessThanK(n, k){
     const l=parseInt('1'.concat((k-1).toString(2)),2)
 //If this number is <=n we can skip the brute force loop and return k-1.
     if (l>n){
-        let max=0;
 //If k is big enough that l > n, then the smallest possible answer is the biggest binary number <n that's all 1s, &'d with the second biggest binary number <n that's all 1s, which results in the latter. This is the binary number with the same number of digits as n, with the highest two digits set to 0 and the rest to 1.
 //We convert n to binary, count the digits, take 1 less than 2^(numOfDigits-2)
 //Starting from that number, we brute force the rest of the way.
-        for (let i=2**(n.toString(2).length-2)-1; i<n;i++){
+        let max=2**(n.toString(2).length-2)-1;
+        for (let i=max+1; i<n;i++){
             for (let j=i+1; j<=n;j++){
                 if ((i&j) < k && (i&j)>max){
                     //console.log("New max "+(i&j)+" found at "+i+"&"+j);
