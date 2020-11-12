@@ -1,0 +1,178 @@
+*/
+Algorithm:
+Part 1:
+Given array of house locations x and transmitter distance k,
+sort x from lowest to highest
+iterate over x, considering the previous, current, and next houses:
+{
+Check the distance between the previous and current house and between the current and next house.
+Add houses to groups (where each house is within k of its neighbor) or to a list of lone houses out of range from any others.
+}
+For each group, get the number of transmitters required to cover it from Part 2. Return the total for all groups + the number of lone houses.
+Part 2:
+Given an ordered set of house locations, and transmitter distance k
+If there are 3 or fewer locations in this group, the answer is always 1.
+Place the first transmitter:
+{
+Starting from the first house, travel to the next house and count the total distance traveled.
+If we reach a distance of k and there's a house at that location, place the first transmitter there.
+If we reach a distance of more than k, place the first transmitter at the last house we passed.
+If we never reach a distance of more than k, one transmitter covers the group.
+}
+Place subsequent transmitters:
+{
+Keep moving to the next house.
+If we've moved 2k+1 since the last transmitter and there's a house here, place a transmitter here.
+If we've moved more than 2k+1 since the last transmitter, place a transmitter at the last house we passed.
+Stop when we reach the last house.
+}
+If the last house is further than k from the last transmitter we placed, we need one more transmitter.
+Return the total number of transmitters placed.
+
+Problem:
+It does not allow any gaps in coverage of the area between the first and last houses of a group.
+For example, given range 80 and houses at 1, 81, 161, 171, 251, 321, 322:
+It will place transmitters at 81, 171, and 322.
+But it could have covered all houses by placing transmitters at 81 and 251, which leaves a coverage gap in the empty space between 161 and 171.
+
+*/
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.TreeSet;
+import java.util.Iterator;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+public class HackerlandRadioTransmitters {
+
+    public static void main(String[] args) {
+        int n,k;
+        System.out.println(hackerlandRadioTransmitters(new int[]{1,2,3,4,5}, 1));
+        System.out.println(hackerlandRadioTransmitters(new int[]{7, 2, 4, 6, 5, 9, 12, 11}, 2));
+        
+        File input06=new File("HackerlandRadioTransmitters-input06-output-620.txt");
+        try{
+            Scanner scanner=new Scanner(input06);
+            String[] nk=scanner.nextLine().split(" ");
+            n=Integer.parseInt(nk[0]);
+            k=Integer.parseInt(nk[1]);
+            int[] x = new int[n];
+            String[] xItems = scanner.nextLine().split(" ");
+            scanner.skip("(\r\n|[\n\r\u2028\u2029\u0085])?");
+            scanner.close();
+            for (int i = 0; i < n; i++) {
+                x[i] = Integer.parseInt(xItems[i]);
+            }
+            System.out.println(hackerlandRadioTransmitters(x, k));
+        }
+        catch(Exception e){
+            System.out.println("Error reading file.");
+        }
+        System.out.println(hackerlandRadioTransmitters(new int[]{1,81,161,171,251,321,322}, 80));
+    }
+
+    static int hackerlandRadioTransmitters(int[] x, int k){
+        if (x.length==1){return 1;}
+        Arrays.sort(x);
+        //System.out.println("Array: "+Arrays.toString(x)+" Range: "+k);
+
+        //After this, lone.size() will be the number of houses that can only cover themselves
+        //and groups will contain an ArrayList of sets, each of which we need to find minimum coverage for.
+        ArrayList<Integer> lone = new ArrayList<Integer>();
+        TreeSet<Integer> curGroup=new TreeSet<Integer>();
+        ArrayList<TreeSet<Integer>> groups = new ArrayList<TreeSet<Integer>>();
+        if(x[1]-x[0]<=k){curGroup.add(x[0]);} else {lone.add(x[0]);}
+        for(int i = 1; i < x.length-1; i++){
+            int prev=x[i-1], cur=x[i], next=x[i+1];
+            if(cur-prev<=k){
+                curGroup.add(cur);
+                continue;
+            } 
+            if(!curGroup.isEmpty()){
+                groups.add(curGroup);
+                curGroup=new TreeSet<Integer>();
+            }
+            if(next-cur<=k){
+                curGroup.add(cur);
+                continue;
+            }
+            lone.add(cur);
+        }
+        if(x[x.length-1]-x[x.length-2]<=k){curGroup.add(x[x.length-1]);} else {lone.add(x[x.length-1]);}
+        if(!curGroup.isEmpty()){groups.add(curGroup);}
+
+        System.out.println("Found "+groups.size()+" groups and "+lone.size()+" lone houses.");
+
+        int total=0;
+        for(int i=0;i<groups.size();i++){
+            total+=coverGroup(groups.get(i), k);
+        }
+        return total+lone.size();
+    }
+
+    static int coverGroup(TreeSet<Integer> group, int k){
+        //System.out.println("Group: "+group.toString());
+        System.out.println("Group size: "+group.size()+". Placing transmitters at distances (range "+k+"):");
+        if(group.size()<4){return 1;}
+        Iterator<Integer> it=group.iterator();
+        int prev=it.next(), cur=0, bridge=0, nodes=1;
+        //find first transmitter location
+        while(it.hasNext()){
+            cur=it.next();
+            bridge+=cur-prev;
+            if(bridge==k){
+                //place transmitter at this location
+                System.out.print(bridge);
+                bridge=0;
+                break;
+            }
+            if(bridge>k){
+                //place transmitter at previous location
+                System.out.print(bridge-(cur-prev));
+                bridge=cur-prev;
+                break;
+            }
+            prev=cur;
+        }
+
+        //find successive transmitter locations if needed
+        while(it.hasNext()){
+            prev=cur;
+            cur=it.next();
+            bridge+=cur-prev;
+            if(bridge>2*k+1){
+                System.out.print(", "+(bridge-(cur-prev)));
+                bridge=cur-prev;
+                nodes++;
+                continue;
+            }
+            if(bridge==2*k+1){
+                System.out.print(", "+bridge);
+                bridge=0;
+                nodes++;
+                continue;
+            }
+        }
+        if(bridge>k){nodes++; System.out.print(", "+bridge);} //final transmitter if the last house is out of transmitter range
+        System.out.println("\nCovered by "+nodes+" transmitters");
+        return nodes;
+    }
+
+}
+
+/*
+//Algorithm to count nonduplicate elements of an array
+    static int specialCase(int[] x){
+        System.out.println("Range is 0");
+        int count=0;
+        int cur, last=x[0];
+        for(int i=1;i<x.length;i++){
+            cur=x[i];
+            if (cur==last){continue;}
+            count++;
+            last=cur;
+        }
+        return count;
+    }
+*/
