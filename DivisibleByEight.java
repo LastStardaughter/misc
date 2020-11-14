@@ -1,48 +1,52 @@
-import java.util.HashSet;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public class DivisibleByEight{
-    static String solve(String n){
-        final String YES="YES", NO="NO";
-        if (n.length()==1){
-            if (n.equals("8")){
-                return YES;
+public class DivisibleByEight {
+    static String solve(String n) {
+        final String YES = "YES", NO = "NO";
+        if ((n.equals("8") || n.equals("0"))
+                || n.length() == 2 && Integer.parseInt(n) % 8 == 0
+                || n.length() == 2 && Integer.parseInt(new String(new char[]{n.charAt(1), n.charAt(0)})) % 8 == 0
+        ) {
+            return YES;
+        } else if (n.length() < 3) return NO;
+
+        Map<Character, Integer> counter = new HashMap<>();
+        for (int i = 0; i < n.length(); i++) {
+            Character character = n.charAt(i);
+            if (!counter.containsKey(character)) {
+                counter.put(character, 1);
+            } else {
+                int temp = counter.get(character);
+                counter.put(character, ++temp);
             }
-            return NO;
         }
-        char[] temp;
-        HashSet<Character> nca; //new char array? I don't remember why I named it this.
-        if(n.length()==2){
-            HashSet<HashSet<Character>> twoDigit=new HashSet<HashSet<Character>>();
-            for(int i=16;i<100;i+=8){
-                temp=Integer.toString(i).toCharArray();
-                nca=new HashSet<Character>();
-                nca.add(temp[0]);
-                nca.add(temp[1]);
-                twoDigit.add(nca);
-                }
-            temp=n.toCharArray();
-            nca=new HashSet<Character>();
-            nca.add(temp[0]);
-            nca.add(temp[1]);
-            if(twoDigit.contains(nca)){return YES;}
-            return NO;
-        }        
-        //HashSet<HashSet<Character>> threeDigit=new HashSet<HashSet<Character>>();
-        temp=n.toCharArray();
-        HashSet<Character> digits=new HashSet<Character>();
-        for(int i=0;i<n.length();i++){
-            digits.add(temp[i]);
-        }
-        for(int i=104;i<1000;i+=8){
-            temp=Integer.toString(i).toCharArray();
-            nca=new HashSet<Character>();
-            nca.add(temp[0]);
-            nca.add(temp[1]);
-            nca.add(temp[2]);
-            if(digits.containsAll(nca)){return YES;}
+
+        if(counter.get('0') !=null && counter.get('0')>=3){return YES;}
+        for (int i = 104; i < 1000; i+=8) {
+            Map<Character, Integer> current=map(i);
+            boolean match=true;
+            for(char digit : current.keySet()){
+                if(counter.containsKey(digit) && counter.get(digit)>=current.get(digit)){}
+                else match=false;
+            }
+            if(match){return YES;}
         }
         return NO;
+    }
+
+    static Map<Character, Integer> map (int x){
+        String n=Integer.toString(x);
+        Map<Character, Integer> counter = new HashMap<>();
+        for (int i = 0; i < n.length(); i++) {
+            Character character = n.charAt(i);
+            if (!counter.containsKey(character)) {
+                counter.put(character, 1);
+            } else {
+                int temp = counter.get(character);
+                counter.put(character, ++temp);
+            }
+        }
+        return counter;
     }
 }
