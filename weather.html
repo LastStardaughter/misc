@@ -48,7 +48,7 @@
 
             let country=document.getElementById("country").value.replace("[^a-zA-Z\s]","").toLowerCase;
 
-           xhr.open("GET", "http://api.openweathermap.org/data/2.5/weather?q="+city+","+country+"&APPID=6fdec453c1361be3e4947e93b75b0502", true);
+           xhr.open("GET", "http://api.openweathermap.org/data/2.5/weather?q="+city+","+country+"&APPID=YOUR_API_KEY_HERE", true);
             xhr.onload= function() {
             const parsedData=JSON.parse(xhr.responseText);
             console.log(xhr.responseText);
